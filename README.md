@@ -57,7 +57,7 @@ If plot=True, it will also generate 3D and 2D plots of the cell spatial distribu
 We define a dynamic features named infiltration change metric of T cells, that is, the movement process of T cells approaching tumor cells. During the cancer-immunity cycle, T cells need to migrate from peripheral tissues to the interior of tumor tissues. Infiltration change metric reflects the process, and we assume an effective local immune response in TME if T cells can infiltrate into tumor tissues.
 The modes of simulating treated group are 'cell blocked' and 'cell depletion'. 'Cell blocked' simulation specifically decreased the affinity score of target cells (expressing target genes) with other cells to 70% of original affinity score, to perturb original cell-cell interaction network. 'Cell depletion' simulation specifically removed the target cells.
 
-![示例图片](images/Infiltration change.png)
+![示例图片](images/Infiltrationchange.png)
 
 To calculate the infiltration change, which simulate the proximity of T cells to cancer cells after receiving drug perturbation:
 ```
