@@ -1,6 +1,7 @@
 # RedeTIL Features
 ## Project Introduction
 A Python package for analyzing single-cell data using RedeTIL features. This package provides tools to calculate abundance, spatial, and dynamic features of single-cell data, to predict clinical response to Immune checkpoint blockade (ICB) therapy for individual patients. 
+
 ![示例图片](images/RedeTIL.png)
 
 ## Installation
@@ -54,7 +55,10 @@ If plot=True, it will also generate 3D and 2D plots of the cell spatial distribu
 
 ### Dynamic Features
 We define a dynamic features named infiltration change metric of T cells, that is, the movement process of T cells approaching tumor cells. During the cancer-immunity cycle, T cells need to migrate from peripheral tissues to the interior of tumor tissues. Infiltration change metric reflects the process, and we assume an effective local immune response in TME if T cells can infiltrate into tumor tissues.
+The modes of simulating treated group are 'cell blocked' and 'cell depletion'. 'Cell blocked' simulation specifically decreased the affinity score of target cells (expressing target genes) with other cells to 70% of original affinity score, to perturb original cell-cell interaction network. 'Cell depletion' simulation specifically removed the target cells.
+
 ![示例图片](images/Infiltration change.png)
+
 To calculate the infiltration change, which simulate the proximity of T cells to cancer cells after receiving drug perturbation:
 ```
 redetil.Dynamic_features(plot=True)
@@ -65,7 +69,7 @@ This will generate several files in the Dynamic_features directory, including:
 If plot=True, it will also generate plots of the perturbated cell spatial distribution and interaction maps.
 
 ### Example
-Here is a complete example to demonstrate the usage of RedeTIL_Features:
+Here is a an example to demonstrate the usage of RedeTIL_Features:
 ```
 if __name__ == '__main__':
     # Load single-cell data
@@ -73,16 +77,17 @@ if __name__ == '__main__':
 
     # One target perturbation
     redetil = RedeTIL_Features(adata, target='PDCD1', perturbation='block',
-                               T_cells='T-cell', Cancer_cells='malignant',
-                               outdir='./results')
+                               T_cells='T-cell', Cancer_cells='malignant')
     redetil.Abundance_features()
     redetil.Spatial_features(plot=True)
     redetil.Dynamic_features(plot=True)
+```
 
+when simulating the treatment of combined drugs:
+```
     # Targets combo
     redetil = RedeTIL_Features(adata, target='PDCD1', combo_target='VEGFA', perturbation='block',
-                               T_cells='T-cell', Cancer_cells='malignant',
-                               outdir='./results')
+                               T_cells='T-cell', Cancer_cells='malignant')
     redetil.Dynamic_features(plot=True)
 ```
 
