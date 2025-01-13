@@ -480,7 +480,8 @@ class RedeTIL_Features:
         
         # 3D plot
         fig = px.scatter_3d(cellinfo_tbl, x='x', y='y', z='z',
-                color='labels',hover_name ='cells' )
+                color='labels',hover_name ='cellName' )
+        # fig.write_image("{outdir}/3d_scatter_plot.png")
         fig.show()
         
         colors = dict((fig.data[i].name, fig.data[i].marker.color) for i in range(len(fig.data))) 
@@ -551,17 +552,6 @@ class RedeTIL_Features:
         plt.ylabel('To')
         plt.title('Rank distance map')
         plt.savefig(f'{outdir}/RankDistance_map.png',bbox_inches='tight',facecolor='w')
-        plt.show()
-        
-        # Distance
-        g = sns.heatmap(
-                data=signif_results['euclidean_distance'],cmap='mako',square=True,annot=True
-            )
-        plt.xticks(rotation=90)
-        plt.title('Distance map')
-        plt.xlabel('')
-        plt.ylabel('')
-        plt.savefig(f'{outdir}/Distance_map.png',bbox_inches='tight',facecolor='w')
         plt.show()
         
     def get_LR(self):
@@ -655,7 +645,8 @@ class RedeTIL_Features:
         cellinfo_tbl = cellinfo_tbl.assign(density=density_obj)
         signif_results = self.getSignificance(coords.values, labels=cellinfo_tbl[['cells','labels']])
         contribution_list = self.getContribution(self.TPM, LR, signif_results['detailed_connections'])
-        cellinfo_tbl.rename(columns={'cells':'cellName'}).to_csv(f'{self.outdir}/Spatial_features/cellinfo_tbl.txt', sep='\t', index=False)
+        cellinfo_tbl.rename(columns={'cells':'cellName'},inplace=True)
+        cellinfo_tbl.to_csv(f'{self.outdir}/Spatial_features/cellinfo_tbl.txt', sep='\t', index=False)
 
         signif_results['connections'].to_csv(f'{self.outdir}/Spatial_features/Cell-Cell_connections.txt', sep='\t')
         signif_results['qvalue'].to_csv(f'{self.outdir}/Spatial_features/Cell-Cell_connections_qvalue.txt', sep='\t')
@@ -664,7 +655,7 @@ class RedeTIL_Features:
         signif_results['euclidean_distance'].to_csv(f'{self.outdir}/Spatial_features/Euclidean Cell-Cell_Distance.txt', sep='\t')
         contribution_list.to_csv(f'{self.outdir}/Spatial_features/Ligand-receptor_contribution.txt', sep='\t')
         if plot==True:
-            self.RedeTIL_plot(cellinfo_tbl,signif_results,self.outdir)
+            self.RedeTIL_plot(cellinfo_tbl,signif_results,f'{self.outdir}/Spatial_features')
 
     
     def Dynamic_features(self, plot=False):
@@ -752,8 +743,10 @@ class RedeTIL_Features:
         signif_results['rank_distance'].to_csv(f'{out_path}/Perturbated Spatial_features/Rank Cell-Cell_Distance.txt', sep='\t')
         signif_results['euclidean_distance'].to_csv(f'{out_path}/Perturbated Spatial_features/Euclidean Cell-Cell_Distance.txt', sep='\t')
         contribution_list.to_csv(f'{out_path}/Perturbated Spatial_features/Ligand-receptor_contribution.txt', sep='\t')
+        
         if plot==True:
-            self.RedeTIL_plot(cellinfo_tbl,signif_results,self.outdir)
+            self.RedeTIL_plot(cellinfo_tbl,signif_results,f'{out_path}/Perturbated Spatial_features')
+            
         self.TILC_subset(cellinfo_tbl, TPM_pert, outdir = f'{out_path}/Perturbated Spatial_features')
         
         RDO_pert = pd.read_csv(f"{out_path}/Perturbated Spatial_features/Distance Tsub-Cancer.txt",sep='\t',index_col=0)
@@ -810,14 +803,14 @@ if __name__ == '__main__':
 
     # One target perturbation
     redetil = RedeTIL_Features(adata, target = 'PDCD1', perturbation='block',
-                    T_cells='T-cell', Cancer_cells='malignant')
+                    T_cells='T-cell', Cancer_cells='malignant',iteration=100)
     redetil.Abundance_features()
-    redetil.Spatial_features()
-    redetil.Dynamic_features()
+    redetil.Spatial_features(plot=True)
+    redetil.Dynamic_features(plot=True)
 
     # Targets combo
     redetil = RedeTIL_Features(adata, target = 'PDCD1', combo_target = 'VEGFA', perturbation='block',
-                    T_cells='T-cell', Cancer_cells='malignant')
-    redetil.Dynamic_features()
+                    T_cells='T-cell', Cancer_cells='malignant',iteration=100)
+    redetil.Dynamic_features(plot=True)
 
 
