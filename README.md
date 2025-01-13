@@ -10,21 +10,25 @@ You can install the `rede_til` package using pip:
 
 ```bash
 pip install git+https://github.com/gaoshengqiao/RedeTIL
+```
 
-Usage
-Initialization
+## Usage
+### Initialization
 First, you need to import the RedeTIL_Features class and initialize an instance with single-cell data. The single-cell data should be provided in AnnData format, where data.obs must contain the 'label' column for cell annotations.
 
 from rede_til import RedeTIL_Features
 import scanpy as sc
 
 # Load your single-cell data
+```
 adata = sc.read_h5ad('path_to_your_data.h5ad')
-
+```
 # Initialize RedeTIL_Features
+```
 redetil = RedeTIL_Features(adata, target='PDCD1', perturbation='block',
                            T_cells='T-cell', Cancer_cells='malignant',
                            outdir='./results')
+```
 Abundance Features
 To calculate the abundance features of specific gene+ cell subsets:
 
