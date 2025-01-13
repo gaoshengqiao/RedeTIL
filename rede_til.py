@@ -14,30 +14,38 @@ class RedeTIL_Features:
     def __init__(self, data, target, perturbation, combo_target = None,
                  T_cells=None, Cancer_cells=None,
                  outdir='./results',
-                 genesets = ['CD4','CD8A',"TNFRSF9","CTLA4","TIGIT","CXCL13","TCF7","HAVCR2","LAYN","CXCR5","ENTPD1","LAG3","GZMB","BATF","CCL5",'CD69',"CD3E","CD274","PDCD1"]):
+                 genesets = ['CD4','CD8A',"TNFRSF9","CTLA4","TIGIT","CXCL13","TCF7","HAVCR2","LAYN","CXCR5","ENTPD1","LAG3","GZMB","BATF","CCL5",'CD69',"CD3E","CD274","PDCD1"],
+                 random_seed = 42,
+                 iteration=1000):
         """
         Initialize the RedeTIL_Features class.
 
-        :param data: AnnData object containing single-cell data, data.obs must contain the 'label' column, where the cell annotation are listed.
+        :param data: AnnData object containing single-cell data (CPM preferred), data.obs must contain the 'label' column, where the cell annotation are listed.
         :param target: Target gene.
         :param perturbation: Perturbation type, 'block' or 'depletion'.
         :param combo_target: Combo target gene (optional).
         :param T_cells: Label for T cells (optional), if not provided, Dynamic_features are not available.
         :param Cancer_cells: Label for cancer cells (optional), if not provided, Dynamic_features are not available.
         :param outdir: Output directory.
-        :param genesets: List of gene+ T cell subsets of interest.
+        :param genesets: List of gene+ cell subsets of interest.
+        :param random_seed: Random_seed for initial 3D coordinates.
+        :param iteration: Iteration steps for 3D embedding.
         """
         self.TPM = pd.DataFrame(data.X.toarray(),index = data.obs.index, columns = data.var.index).T
         self.label = pd.DataFrame(data.obs['labels'].reset_index().values, columns = ['cells','labels'])
         self.target = target
-        if perturbation not in ["block", "depletion"]:
-            raise ValueError(f"perturbation must be one of 'block' or 'depletion', but got '{perturbation}'")
         self.combo_target = combo_target
         self.perturbation = perturbation
         self.T_cells = T_cells
         self.Cancer_cells = Cancer_cells
         self.outdir = outdir
         self.genesets = genesets
+        self.random_seed = random_seed
+        self.iteration = iteration
+        
+        if perturbation not in ["block", "depletion"]:
+            raise ValueError(f"perturbation must be one of 'block' or 'depletion', but got '{perturbation}'")
+        
         os.makedirs(self.outdir, exist_ok=True)
         
     def getSignificance(self, coordinates, labels,  k=3):
@@ -145,7 +153,7 @@ class RedeTIL_Features:
         result['rank_distance'] = rank_distance/len(coordinates)
         return result
 
-    def optimization(self, affinityMat, initial_config=None, k=3, max_iter=1000, min_cost=0, condition="tight"):
+    def optimization(self, affinityMat, initial_config=None, k=3, min_cost=0, condition="tight"):
         """
         Embedding cells into three dimensional space.
 
@@ -158,6 +166,7 @@ class RedeTIL_Features:
         :return: Optimized coordinates.
         """
         
+        np.random.seed(self.random_seed)
         n = affinityMat.shape[0]
         momentum = 0.5  # initial momentum
         final_momentum = 0.8  # final momentum
@@ -184,7 +193,7 @@ class RedeTIL_Features:
         incs = np.zeros_like(ydata)
         gains = np.ones_like(ydata)
         
-        for iter in range(1,max_iter+1):
+        for iter in range(1,self.iteration+1):
             sum_ydata = np.apply_along_axis(lambda row: np.sum(row ** 2), axis=1, arr=ydata)
             d =  sum_ydata + (-2 * np.dot(ydata, ydata.T)) + sum_ydata.reshape((-1, 1))
 
@@ -227,7 +236,7 @@ class RedeTIL_Features:
                 if range_ > 50 and iter % 10 == 0:
                     ydata *= 50 / range_
             else:
-                if range_ > 50 and iter % max_iter == 0:
+                if range_ > 50 and iter % self.iteration == 0:
                     ydata *= 50 / range_
         
         return ydata
@@ -458,7 +467,7 @@ class RedeTIL_Features:
 
     def RedeTIL_plot(self,cellinfo_tbl,signif_results,outdir):
         """
-        Plot results using RedeTIL.
+        Plot the spatial space, cell-cell interactions and cell-cell distance.
 
         :param cellinfo_tbl: Cell information table.
         :param signif_results: Significance results.
@@ -607,7 +616,7 @@ class RedeTIL_Features:
 
     def Abundance_features(self):
         """
-        Calculate abundance features.
+        Calculate abundance features of specific gene+ cell subsets.
 
         :return: Abundance features.
         """
@@ -624,11 +633,11 @@ class RedeTIL_Features:
         os.makedirs(f'{self.outdir}/Abundance_features',exist_ok=True)
         # cell_ratio.to_csv(f'./results/Abundance_features/Abundance_features.txt',sep='\t')
         cell_ratio.to_csv(f'{self.outdir}/Abundance_features/Abundance_features.txt', sep='\t')
-        return cell_ratio
+
 
     def Spatial_features(self, plot=False):
         """
-        Calculate spatial features.
+        Reconstruct the spatial topology of cells and calculate spatial features.
 
         :param plot: Plot results.
         :return: Spatial features.
@@ -656,12 +665,11 @@ class RedeTIL_Features:
         contribution_list.to_csv(f'{self.outdir}/Spatial_features/Ligand-receptor_contribution.txt', sep='\t')
         if plot==True:
             self.RedeTIL_plot(cellinfo_tbl,signif_results,self.outdir)
-            
-        return signif_results
+
     
     def Dynamic_features(self, plot=False):
         """
-        Calculate dynamic features.
+        Calculate the dynamic features -- Infiltration change, which simulates the proximity of T cells to Cancer cells after receiving drug perturabation.
 
         :param plot: Plot results.
         :return: Dynamic features.
@@ -671,8 +679,9 @@ class RedeTIL_Features:
             raise ValueError("Drug target was not provided")
         if self.target not in self.TPM.index:
             raise ValueError("Drug target was not detected in single-cell profiles")
-        if self.combo_target not in self.TPM.index:
-            raise ValueError("Combo target was not detected in single-cell profiles")
+        if self.combo_target is not None:
+            if self.combo_target not in self.TPM.index:
+                raise ValueError("Combo target was not detected in single-cell profiles")
         if self.T_cells is None:
             raise ValueError("Identity of T cells was not provided")
         if self.Cancer_cells is None:
@@ -745,13 +754,13 @@ class RedeTIL_Features:
         contribution_list.to_csv(f'{out_path}/Perturbated Spatial_features/Ligand-receptor_contribution.txt', sep='\t')
         if plot==True:
             self.RedeTIL_plot(cellinfo_tbl,signif_results,self.outdir)
-        self.TILC_subset(cellinfo_tbl, TPM_pert, outdir = f'{out_path}/')
+        self.TILC_subset(cellinfo_tbl, TPM_pert, outdir = f'{out_path}/Perturbated Spatial_features')
         
-        RDO_pert = pd.read_csv(f"{out_path}/Distance Tsub-Cancer.txt",sep='\t',index_col=0)
+        RDO_pert = pd.read_csv(f"{out_path}/Perturbated Spatial_features/Distance Tsub-Cancer.txt",sep='\t',index_col=0)
         RDO = RDO_naive-RDO_pert
         RDO.columns = ['Infiltration change']
         RDO.to_csv(f'{out_path}/Dynamic_features.txt',sep='\t')
-        return signif_results
+
         
     def TILC_subset(self, cellinfo_tbl, TPM,  outdir):
         """
@@ -807,7 +816,7 @@ if __name__ == '__main__':
     redetil.Dynamic_features()
 
     # Targets combo
-    redetil = RedeTIL_Features(adata, target = 'CTLA4', combo_target = 'VEGFA', perturbation='block',
+    redetil = RedeTIL_Features(adata, target = 'PDCD1', combo_target = 'VEGFA', perturbation='block',
                     T_cells='T-cell', Cancer_cells='malignant')
     redetil.Dynamic_features()
 
