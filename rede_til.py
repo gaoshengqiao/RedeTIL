@@ -803,14 +803,14 @@ if __name__ == '__main__':
 
     # One target perturbation
     redetil = RedeTIL_Features(adata, target = 'PDCD1', perturbation='block',
-                    T_cells='T-cell', Cancer_cells='malignant',iteration=100)
+                    T_cells='T-cell', Cancer_cells='malignant',iteration=300)
     redetil.Abundance_features()
     redetil.Spatial_features(plot=True)
     redetil.Dynamic_features(plot=True)
 
     # Targets combo
     redetil = RedeTIL_Features(adata, target = 'PDCD1', combo_target = 'VEGFA', perturbation='block',
-                    T_cells='T-cell', Cancer_cells='malignant',iteration=100)
+                    T_cells='T-cell', Cancer_cells='malignant',iteration=300)
     redetil.Dynamic_features(plot=True)
 
 
