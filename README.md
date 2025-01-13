@@ -74,13 +74,11 @@ Read demo data
 ```
 from rede_til import RedeTIL_Features
 import scanpy as sc
-# Load single-cell data
 adata = sc.read_h5ad('./demo/demo.h5ad')
 ```
 
 Simulating the treatment of mono drug:
 ```
-# One target perturbation
 redetil = RedeTIL_Features(adata, target='PDCD1', perturbation='block',
                             T_cells='T-cell', Cancer_cells='malignant')
 redetil.Abundance_features()
@@ -90,7 +88,6 @@ redetil.Dynamic_features(plot=True)
 
 Simulating the treatment of combined drugs:
 ```
-# Targets combo
 redetil = RedeTIL_Features(adata, target='PDCD1', combo_target='VEGFA', perturbation='block',
                             T_cells='T-cell', Cancer_cells='malignant')
 redetil.Dynamic_features(plot=True)
