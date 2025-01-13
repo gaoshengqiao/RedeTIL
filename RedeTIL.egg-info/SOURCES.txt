@@ -1,0 +1,7 @@
+README.md
+setup.py
+RedeTIL.egg-info/PKG-INFO
+RedeTIL.egg-info/SOURCES.txt
+RedeTIL.egg-info/dependency_links.txt
+RedeTIL.egg-info/requires.txt
+RedeTIL.egg-info/top_level.txt
