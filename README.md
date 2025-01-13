@@ -1,7 +1,7 @@
 # RedeTIL Features
 ## Project Introduction
 A Python package for analyzing single-cell data using RedeTIL features. This package provides tools to calculate abundance, spatial, and dynamic features of single-cell data, to predict clinical response to Immune checkpoint blockade (ICB) therapy for individual patients. 
-
+![示例图片](images/RedeTIL.png)
 
 ## Installation
 
@@ -54,6 +54,7 @@ If plot=True, it will also generate 3D and 2D plots of the cell spatial distribu
 
 ### Dynamic Features
 We define a dynamic features named infiltration change metric of T cells, that is, the movement process of T cells approaching tumor cells. During the cancer-immunity cycle, T cells need to migrate from peripheral tissues to the interior of tumor tissues. Infiltration change metric reflects the process, and we assume an effective local immune response in TME if T cells can infiltrate into tumor tissues.
+![示例图片](images/Infiltration change.png)
 To calculate the infiltration change, which simulate the proximity of T cells to cancer cells after receiving drug perturbation:
 ```
 redetil.Dynamic_features(plot=True)
@@ -86,7 +87,7 @@ if __name__ == '__main__':
 ```
 
 ## Contact
-For any questions or issues, please contact [xx@xx.com].
+For any questions or issues, please contact [renxwise@cpl.ac.cn] or [292966713@qq.com].
 
 ## License
 This project is licensed under the MIT License.
