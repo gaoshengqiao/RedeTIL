@@ -70,12 +70,16 @@ If plot=True, it will also generate plots of the perturbated cell spatial distri
 
 ### Example
 Here is a an example to demonstrate the usage of RedeTIL_Features:
+Read demo data
 ```
 from rede_til import RedeTIL_Features
 import scanpy as sc
 # Load single-cell data
 adata = sc.read_h5ad('./demo/demo.h5ad')
+```
 
+Simulating the treatment of mono drug:
+```
 # One target perturbation
 redetil = RedeTIL_Features(adata, target='PDCD1', perturbation='block',
                             T_cells='T-cell', Cancer_cells='malignant')
@@ -84,7 +88,7 @@ redetil.Spatial_features(plot=True)
 redetil.Dynamic_features(plot=True)
 ```
 
-when simulating the treatment of combined drugs:
+Simulating the treatment of combined drugs:
 ```
 # Targets combo
 redetil = RedeTIL_Features(adata, target='PDCD1', combo_target='VEGFA', perturbation='block',
